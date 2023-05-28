@@ -6,18 +6,39 @@ import FormButton from "../../shared/components/FormButton";
 import { useTheme } from "../../shared/context/ThemeContext";
 import FormPassword from "../../shared/components/FormPassword";
 import AnimatedLottieView from "lottie-react-native";
+import { UserLogin } from "../../config/UserLogin";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Login = ({ navigation }) => {
   const theme = useTheme();
   const styles = styling(theme);
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
+  
+  const handleUsernameChange = (text) => {
+    setUsername(text);
+  };
+
+  const handlePasswordChange = (text) => {
+    setPassword(text);
+  };
 
   const onSubmit = () => {
-    const usernameValid = "admin";
-    const passValid = "admin123";
-    if (usernameValid == username && passValid == password) {
-      navigation.replace("Home");
+    if (username !== "" && password !== "") {
+    UserLogin({
+      username: username.toLocaleLowerCase(),
+      password: password,
+    })
+      .then((result) => {
+        console.log(result);
+        if (result?.status == 200) {
+          AsyncStorage.setItem("AccessToken", result.data.data);
+          navigation.replace("Home");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
     } else {
       Alert.alert("Incorrect Login Username or Password");
     }
@@ -36,16 +57,16 @@ const Login = ({ navigation }) => {
         />
         <FormInput
           value={username}
-          onChangeValue={setUsername}
-          placeholder={"Input Your Username"}
+          onChangeValue={handleUsernameChange}
+          placeholder={"Input Username"}
         />
         <FormPassword
           value={password}
-          onChangeValue={setPassword}
-          placeholder={"Input Your Password"}
+          onChangeValue={handlePasswordChange}
+          placeholder={"Input Password"}
         />
       </View>
-      <FormButton style={styles.button} label="Login" onClick={onSubmit} />
+      <FormButton style={styles.button} label="Login" onClick={onSubmit}/>
     </MainContainer>
   );
 };

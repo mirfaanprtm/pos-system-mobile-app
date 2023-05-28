@@ -11,11 +11,49 @@ import {
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { FlatGrid } from "react-native-super-grid";
 import TextLabel from "../../shared/components/TextLabel";
+import theme from "../../shared/constants/theme";
+import TransactionScreen from "./components/TransactionComp";
+import { useState, useEffect, useContext } from "react";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { StockContext, StockProvider } from "../../shared/context/StockContext";
 
 function DashboardScreen() {
   const theme = useTheme();
   const styles = styling(theme);
-  const data = [{ id: 1 }, { id: 2 }];
+  const [totalStockIn, setTotalStockIn] = useState(0);
+  const { totStockIn } = useContext(StockContext);
+
+  useEffect(() => {
+    const calculateTotalStockIn = async () => {
+      try {
+        const jwtToken = await AsyncStorage.getItem("AccessToken");
+        const response = await axios.get(
+          "http://10.10.100.105:8080/api/trx/stock-in",
+          {
+            headers: {
+              Authorization: `Bearer ${jwtToken}`,
+            },
+          }
+        );
+
+        const data = response.data.data;
+
+        // Hitung total produk masuk dari data yang diperoleh
+        const total = data.reduce((acc, item) => acc + item.qty, 0);
+        setTotalStockIn(total);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    calculateTotalStockIn();
+  }, []);
+
+  const data = [
+    { id: 1, h1: totalStockIn.toString(), h2: "Product In" },
+    { id: 2, h1: "104", h2: "Product Out" },
+  ];
 
   const renderItem = ({ item }) => {
     let itemStyle = styles.itemContainer;
@@ -29,8 +67,10 @@ function DashboardScreen() {
     return (
       <View>
         <TouchableOpacity style={itemStyle}>
-          <TextLabel text={"3027"} label={"h2"} />
-          <TextLabel text={"Product In"} label={"h3"} />
+          <View style={styles.textContainer}>
+            <TextLabel text={item.h1} label={"h2"} />
+            <TextLabel text={item.h2} label={"h2"} />
+          </View>
         </TouchableOpacity>
       </View>
     );
@@ -41,40 +81,18 @@ function DashboardScreen() {
       <StatusBar style={styles.statBar} barStyle={"light-content"} />
       <View style={{ flex: 1, margin: 20 }}>
         <Image
-          style={{ width: 50, height: 50, borderRadius: 50 }}
+          style={{ width: 60, height: 60, borderRadius: 50 }}
           source={require("../../../assets/images/profil.jpeg")}
         />
-        <Text>Hi, Cucu!</Text>
-        <Text>Welcome to Dashboard</Text>
+        <Text style={styles.textHello}>Hi, Admin!</Text>
         <FlatGrid
           style={{ flex: 1 }}
           itemDimension={130}
           data={data}
           renderItem={renderItem}
         />
-        <View style={styles.sectionContainer}>
-          <TouchableOpacity
-            style={{ backgroundColor: "#0080F6", borderRadius: 5, padding: 20 }}
-          >
-            <TextLabel text={"Profit/day"} label={"h2"} />
-            <TextLabel text={"Rp. 200.000,-"} label={"h2"} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{ backgroundColor: "#00B2EB", borderRadius: 5, padding: 20 }}
-          >
-            <TextLabel text={"Total Product Out/day"} label={"h2"} />
-            <TextLabel text={"120"} label={"h2"} />
-          </TouchableOpacity>
-        </View>
+    
       </View>
-    </View>
-  );
-}
-
-function TransactionScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Transaction</Text>
     </View>
   );
 }
@@ -86,28 +104,30 @@ const Dashboard = () => {
   const styles = styling(theme);
 
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+    <StockProvider>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
 
-          if (route.name === "Dashboard") {
-            iconName = focused
-              ? "ios-information-circle"
-              : "ios-information-circle-outline";
-          } else if (route.name === "Transaction") {
-            iconName = focused ? "ios-list" : "ios-list-outline";
-          }
+            if (route.name === "Dashboard") {
+              iconName = focused
+                ? "ios-information-circle"
+                : "ios-information-circle-outline";
+            } else if (route.name === "Stock In") {
+              iconName = focused ? "ios-list" : "ios-list-outline";
+            }
 
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: "gray",
-      })}
-    >
-      <Tab.Screen name="Dashboard" component={DashboardScreen} />
-      <Tab.Screen name="Transaction" component={TransactionScreen} />
-    </Tab.Navigator>
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: "#1D267D",
+        })}
+      >
+        <Tab.Screen name="Dashboard" component={DashboardScreen} />
+        <Tab.Screen name="Stock In" component={TransactionScreen} />
+      </Tab.Navigator>
+    </StockProvider>
   );
 };
 
@@ -122,13 +142,30 @@ const styling = () =>
     },
     itemContainer: {
       height: 130,
-      borderRadius: 10,
+      borderRadius: 20,
       elevation: 3,
+      marginTop: 120,
+      display: "flex",
+      flexDirection: "column"
     },
     sectionContainer: {
       alignItems: "stretch",
       gap: 30,
-      marginTop: -100,
+      display: "flex",
+      margin: 10,
+      marginBottom: 200,
+    },
+    textContainer: {
+      justifyContent: "center",
+      alignItems: "center",
+      display: "flex",
+      flex: 1,
+    },
+    textHello: {
+      fontFamily: "Montserrat-Medium",
+      color: theme.color.primary,
+      fontWeight: "bold",
+      marginTop: 10,
     },
   });
 

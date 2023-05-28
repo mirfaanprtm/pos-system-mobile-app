@@ -7,6 +7,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import Login from "./src/features/LoginScreen/Login";
 
 import Dashboard from "./src/features/DashboardScreen/Dashboard";
+import AddTransaction from "./src/features/DashboardScreen/components/AddTransaction";
 
 export default function App() {
   const fonts = useAppFont();
@@ -19,9 +20,11 @@ export default function App() {
     <ThemeProvider>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name="Welcome" component={Welcome} 
+          <Stack.Screen
+            name="Welcome"
+            component={Welcome}
             options={{
-              headerMode: "none"
+              headerMode: "none",
             }}
           />
           <Stack.Screen name="Login" component={Login} />

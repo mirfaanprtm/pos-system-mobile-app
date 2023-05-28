@@ -22,6 +22,7 @@ const FormPassword = ({ value, onChangeValue, placeholder }) => {
           name={hidePass ? "eye-with-line" : "eye"}
           size={24}
           color={"black"}
+          
         />
       </Pressable>
     </View>

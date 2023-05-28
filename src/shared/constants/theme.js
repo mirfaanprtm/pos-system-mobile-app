@@ -25,7 +25,7 @@ const theme = {
     },
     h2style: {
       fontSize: 24,
-      color: "#BACDDB",
+      color: "white",
       fontFamily: "Montserrat-Medium",
     },
     h3style: {
