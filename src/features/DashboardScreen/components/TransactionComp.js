@@ -61,7 +61,7 @@ const TransactionScreen = ({ navigation }) => {
 
       const jwtToken = await AsyncStorage.getItem("AccessToken");
       const response = await axios.get(
-        "http://10.10.100.105:8080/api/trx/stock-in",
+        "http://10.10.100.46:8080/api/trx/stock-in",
         {
           headers: {
             Authorization: `Bearer ${jwtToken}`,
